@@ -14,7 +14,7 @@ env:
   GKE_CLUSTER: probestack-zonal-cluster
   GKE_LOCATION: us-central1-a
   GKE_LOCATION_FLAG: --zone
-  NAMESPACE: secure-production-app
+  NAMESPACE: forgesphere-prod
 
 jobs:
   deploy:
