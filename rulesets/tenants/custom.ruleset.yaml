@@ -1,0 +1,43 @@
+# =============================================================================
+# custom-ruleset.example.yaml
+#
+# This is what an END USER of your product would author (or your UI would
+# generate) to layer their own rules on top of the base ruleset. Nothing
+# special about the filename/location — it's whatever the user uploads or
+# your app stores per-tenant, e.g. `rulesets/tenant-123.ruleset.yaml`.
+#
+# Key idea: "extends" is native Spectral behavior. The user's rules are
+# merged with base.ruleset.yaml (which itself extends spectral:oas), so
+# they automatically inherit everything, and can override or disable any
+# inherited rule by re-declaring its name.
+# =============================================================================
+
+extends:
+  - ../base.ruleset.yaml   # <-- path resolved relative to this file
+
+rules:
+  # --- Disable an inherited rule the tenant doesn't care about ---------------
+  operation-summary-required: off
+
+  # --- Downgrade an inherited rule's severity ---------------------------------
+  api-global-security-defined: info
+
+  # --- Add a brand-new, tenant-specific rule ----------------------------------
+  no-http-urls-in-servers:
+    description: Server URLs must use HTTPS.
+    message: "Server URL '{{value}}' should use https://, not http://."
+    severity: error
+    given: "$.servers[*].url"
+    then:
+      function: pattern
+      functionOptions:
+        match: "^https://"
+
+  path-must-be-kebab-case:
+    description: Path segments should be kebab-case (company convention).
+    severity: warn
+    given: "$.paths[*]~"
+    then:
+      function: pattern
+      functionOptions:
+        match: "^(/[a-z0-9]+(-[a-z0-9]+)*|/\\{[a-zA-Z0-9_]+\\})*$"

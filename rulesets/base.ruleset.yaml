@@ -1,0 +1,92 @@
+# =============================================================================
+# base.ruleset.yaml
+#
+# This is the DEFAULT ruleset shipped with the product. It extends Spectral's
+# built-in "oas" ruleset (core OpenAPI/Swagger validity + best practices) and
+# layers on a handful of opinionated house rules with categories/tags so the
+# scorer can produce per-category sub-scores.
+#
+# End users should NOT edit this file directly. Instead they create their own
+# ruleset file that "extends" this one (see examples/custom-ruleset.example.yaml).
+# That keeps upgrades to the base ruleset painless for every customer.
+# =============================================================================
+
+extends:
+  - spectral:oas   # built-in ruleset: syntax validity, schema correctness, etc.
+
+rules:
+  # ---- Documentation quality -----------------------------------------------
+  info-contact-required:
+    description: API info object should have contact information.
+    message: "API should expose contact info (info.contact) for consumers."
+    severity: warn
+    given: "$.info"
+    then:
+      field: contact
+      function: truthy
+
+  info-description-required:
+    description: API info object should have a meaningful description.
+    severity: warn
+    given: "$.info"
+    then:
+      field: description
+      function: truthy
+
+  operation-description-required:
+    description: Every operation should document what it does.
+    severity: warn
+    given: "$.paths[*][*]"
+    then:
+      field: description
+      function: truthy
+
+  operation-summary-required:
+    description: Every operation should have a short summary.
+    severity: hint
+    given: "$.paths[*][*]"
+    then:
+      field: summary
+      function: truthy
+
+  # ---- Operational hygiene --------------------------------------------------
+  operation-operationId-required:
+    description: Operations should declare a unique operationId for tooling/codegen.
+    severity: error
+    given: "$.paths[*][*]"
+    then:
+      field: operationId
+      function: truthy
+
+  operation-tags-required:
+    description: Operations should be grouped under at least one tag.
+    severity: warn
+    given: "$.paths[*][*]"
+    then:
+      field: tags
+      function: truthy
+
+  # ---- Response quality -------------------------------------------------
+  operation-4xx-response:
+    description: Operations should document at least one client-error (4xx) response.
+    severity: info
+    given: "$.paths[*][*].responses"
+    then:
+      function: schema
+      functionOptions:
+        schema:
+          type: object
+          patternProperties:
+            "^4[0-9]{2}$":
+              type: object
+        # NOTE: relies on Spectral's schema function; you can swap in a custom
+        # JS function (see src/functions) for more nuanced 4xx checks.
+
+  # ---- Security -----------------------------------------------------------
+  api-global-security-defined:
+    description: API should define a global security scheme unless explicitly public.
+    severity: warn
+    given: "$"
+    then:
+      field: security
+      function: truthy

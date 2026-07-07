@@ -1,0 +1,26 @@
+extends:
+  - ../rulesets/base.ruleset.yaml
+
+rules:
+  operation-summary-required: off
+
+  api-global-security-defined: info
+
+  no-http-urls-in-servers:
+    description: Server URLs must use HTTPS.
+    message: "Server URL '{{value}}' should use https://, not http://."
+    severity: error
+    given: "$.servers[*].url"
+    then:
+      function: pattern
+      functionOptions:
+        match: "^https://"
+
+  path-must-be-kebab-case:
+    description: Path segments should be kebab-case (company convention).
+    severity: warn
+    given: "$.paths[*]~"
+    then:
+      function: pattern
+      functionOptions:
+        match: "^(/[a-z0-9]+(-[a-z0-9]+)*|/\\{[a-zA-Z0-9_]+\\})*$"

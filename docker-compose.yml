@@ -1,0 +1,17 @@
+version: '3.8'
+
+services:
+  spec-scorer:
+    build: .
+    ports:
+      - '3000:3000'
+    environment:
+      - PORT=3000
+      - RULESETS_DIR=/app/data/tenants
+    volumes:
+      # Persist tenant custom rulesets across container restarts/redeploys.
+      - spec-scorer-tenants:/app/data/tenants
+    restart: unless-stopped
+
+volumes:
+  spec-scorer-tenants:
