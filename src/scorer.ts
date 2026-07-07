@@ -60,6 +60,10 @@ export class SpecScorer {
     }
 
     const effectiveRuleset = filterRulesetDefinition(ruleset, allowedRules);
+    console.log(
+      'RULES:',
+      Object.keys((effectiveRuleset as any).rules ?? {})
+    );
     spectral.setRuleset(effectiveRuleset);
     return spectral;
   }
@@ -79,7 +83,10 @@ export class SpecScorer {
       typeof spec === 'string'
         ? new Document(spec, (format === 'json' ? JsonParser : YamlParser) as typeof JsonParser, 'spec')
         : new Document(JSON.stringify(spec, null, 2), JsonParser, 'spec');
-
+    console.log(
+      "RUNNING RULES:",
+      Object.keys((spectral as any).rules ?? {})
+    );
     const results = await spectral.run(document);
 
     const issues: ScoreIssue[] = results.map((r) => {
@@ -145,15 +152,30 @@ export function filterRulesetDefinition(ruleset: RulesetDefinition, allowedRules
   const rulesetWithRules = ruleset as RulesetDefinition & { rules?: Record<string, unknown> };
   const filteredRules = Object.entries(rulesetWithRules.rules ?? {}).reduce<Record<string, unknown>>((acc, [ruleName, ruleDefinition]) => {
     if (normalizedAllowedRules.has(ruleName.toLowerCase())) {
-      acc[ruleName] = ruleDefinition;
+      acc[ruleName] = normalizeRuleDefinition(ruleDefinition);
     }
     return acc;
   }, {});
 
+  const baseDefinition = (ruleset as RulesetDefinition & { definition?: RulesetDefinition }).definition ?? ruleset;
+
   return {
-    ...ruleset,
+    ...baseDefinition,
     rules: filteredRules,
   } as RulesetDefinition;
+}
+
+function normalizeRuleDefinition(ruleDefinition: unknown): unknown {
+  if (
+    ruleDefinition &&
+    typeof ruleDefinition === 'object' &&
+    'definition' in ruleDefinition &&
+    (ruleDefinition as { definition?: unknown }).definition !== undefined
+  ) {
+    return (ruleDefinition as { definition: unknown }).definition;
+  }
+
+  return ruleDefinition;
 }
 
 function toGrade(score: number): ScoreReport['grade'] {

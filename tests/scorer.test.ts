@@ -141,6 +141,14 @@ describe('SpecScorer - rule selection', () => {
       'operation-summary-required': { severity: 'warn' },
     });
   });
+
+  it('allows scoring with a filtered rule list without throwing', async () => {
+    const scorer = new SpecScorer();
+    const report = await scorer.score(sampleSpec, 'yaml', ['operation-operationId-required']);
+
+    expect(report.totalIssues).toBeGreaterThan(0);
+    expect(report.issues.some((issue) => issue.code === 'operation-operationId-required')).toBe(true);
+  });
 });
 
 describe('SpecScorer - scoring config', () => {
