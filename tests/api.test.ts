@@ -12,6 +12,23 @@ describe('GET /health', () => {
     expect(res.status).toBe(200);
     expect(res.body).toEqual({ status: 'ok' });
   });
+
+  it('includes CORS headers', async () => {
+    const res = await request(app).get('/health');
+    expect(res.headers['access-control-allow-origin']).toBe('*');
+    expect(res.headers['access-control-allow-methods']).toBe('GET,POST,PUT,DELETE,OPTIONS');
+    expect(res.headers['access-control-allow-headers']).toBe('Content-Type,Authorization');
+  });
+});
+
+describe('OPTIONS preflight', () => {
+  it('returns CORS headers without hitting route handlers', async () => {
+    const res = await request(app).options('/v1/score');
+    expect(res.status).toBe(204);
+    expect(res.headers['access-control-allow-origin']).toBe('*');
+    expect(res.headers['access-control-allow-methods']).toBe('GET,POST,PUT,DELETE,OPTIONS');
+    expect(res.headers['access-control-allow-headers']).toBe('Content-Type,Authorization');
+  });
 });
 
 describe('POST /v1/score', () => {
