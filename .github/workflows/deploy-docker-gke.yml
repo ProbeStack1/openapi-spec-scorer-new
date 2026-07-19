@@ -5,7 +5,6 @@ on:
     branches:
       - develop
   workflow_dispatch:
-
 env:
   PROJECT_ID: probestack-prod
   ARTIFACT_REPO: probestack-prod-apps
